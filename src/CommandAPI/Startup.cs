@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using CommandAPI.Data;
 using Microsoft.Extensions.Configuration;//access configuration
 using Microsoft.EntityFrameworkCore;//access DBcontext
+using Npgsql; //so we can access NpgsqlConnectionStringBuilder class
 
 namespace CommandAPI
 {
@@ -24,8 +25,20 @@ namespace CommandAPI
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //Start setting connection to use database userID and password from our user secret file
+            var builder = new NpgsqlConnectionStringBuilder();
+            builder.ConnectionString = Configuration.GetConnectionString("PostgreSqlConnection");
+            builder.Username = Configuration["UserID"];
+            builder.Password = Configuration["Password"];
+            //End setting connection to use database userID and password from our user secret file
+
             //Register our DBContext (opt.UseNpgsql(..)) in the ConfigureServices method and pass it the connection stirng
-            services.AddDbContext<CommandContext>(opt => opt.UseNpgsql(Configuration.GetConnectionString("PostgreSqlConnection")));
+            //Option 1: Use connection string info without using User Secret file
+            //services.AddDbContext<CommandContext>(opt => opt.UseNpgsql(Configuration.GetConnectionString("PostgreSqlConnection")));
+
+            //Option 2: Use connection string info with userID and password from our user Secret file
+            services.AddDbContext<CommandContext>(opt => opt.UseNpgsql(builder.ConnectionString));
+            
             //Section 1. Registers services to enable the use of “Controllers” throughout our application.
             services.AddControllers();
 
