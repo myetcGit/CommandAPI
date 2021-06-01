@@ -9,21 +9,31 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using CommandAPI.Data;
+using Microsoft.Extensions.Configuration;//access configuration
+using Microsoft.EntityFrameworkCore;//access DBcontext
 
 namespace CommandAPI
 {
     public class Startup
     {
+        public IConfiguration Configuration{get;}
+        public Startup(IConfiguration configuration){
+            Configuration = configuration;
+        }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //Register our DBContext (opt.UseNpgsql(..)) in the ConfigureServices method and pass it the connection stirng
+            services.AddDbContext<CommandContext>(opt => opt.UseNpgsql(Configuration.GetConnectionString("PostgreSqlConnection")));
             //Section 1. Registers services to enable the use of “Controllers” throughout our application.
             services.AddControllers();
 
             //Applying Dependency Injection
             //Note: Require using CommandAPI.Data so we can access ICommandAPIRepo and MockCommandAPIRepo
-            services.AddScoped<ICommandAPIRepo,MockCommandAPIRepo>();
+            //services.AddScoped<ICommandAPIRepo,MockCommandAPIRepo>();
+            //We comment out the hardcoded MockCommandAPIRepo class (above) to use data from the database below
+            services.AddScoped<ICommandAPIRepo,SqlCommandAPIRepo>();
 
         }
 
