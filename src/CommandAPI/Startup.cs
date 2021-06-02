@@ -12,6 +12,8 @@ using CommandAPI.Data;
 using Microsoft.Extensions.Configuration;//access configuration
 using Microsoft.EntityFrameworkCore;//access DBcontext
 using Npgsql; //so we can access NpgsqlConnectionStringBuilder class
+using Newtonsoft.Json.Serialization; //for working with PATCH documents in ConfigureServices method
+
 
 namespace CommandAPI
 {
@@ -39,8 +41,16 @@ namespace CommandAPI
             //Option 2: Use connection string info with userID and password from our user Secret file
             services.AddDbContext<CommandContext>(opt => opt.UseNpgsql(builder.ConnectionString));
             
+            //Use NewtonSoftJson package
+            //Allows for the correct parsing of our Patch document.
+            services.AddControllers().AddNewtonsoftJson(s =>{
+                s.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();});
+            
             //Section 1. Registers services to enable the use of “Controllers” throughout our application.
             services.AddControllers();
+
+            //DTO - Register auto mapper 
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             //Applying Dependency Injection
             //Note: Require using CommandAPI.Data so we can access ICommandAPIRepo and MockCommandAPIRepo
